@@ -26,3 +26,10 @@ if vim_launch_directory is not None:
   #vim.command(f'file {sidebar_buffer:s}') 
   #vim.command(f'edit {sidebar_buffer:s}') 
   #vim.command(f'vertical resize {sidebar_width:d}') 
+
+  #sidebar_buffer[:] = None  # Remove all content
+  #sidebar_buffer[0] = '--line 0--'
+  sidebar_buffer[:] = ["Hello", "World"]
+  #sidebar_buffer.append(["Hello", "World"]) # Adds to bottom
+  
+  
