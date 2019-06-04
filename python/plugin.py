@@ -23,13 +23,16 @@ if vim_launch_directory is not None:
   sidebar_buffer = vim.buffers[len(vim.buffers)]
   sidebar_buffer.name='sidebar'
   
+  # https://vimhelp.org/options.txt.html#global-local
+  sidebar_buffer.options['buftype']='nofile' # no need to write this file on exit
+  
   #vim.command(f'file {sidebar_buffer:s}') 
   #vim.command(f'edit {sidebar_buffer:s}') 
   #vim.command(f'vertical resize {sidebar_width:d}') 
 
   #sidebar_buffer[:] = None  # Remove all content
   #sidebar_buffer[0] = '--line 0--'
+  #sidebar_buffer.append(["Hello", "World"]) # Adds to bottom (blank line at top)
   sidebar_buffer[:] = ["Hello", "World"]
-  #sidebar_buffer.append(["Hello", "World"]) # Adds to bottom
   
   
