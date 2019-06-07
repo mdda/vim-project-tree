@@ -24,6 +24,7 @@ if vim_launch_directory is not None:
   # Stuff to initialise plugin view here
   # https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/creator.vim#L187
   vim.command(f'topleft vertical {sidebar_width:d} new') 
+  vim.command(f'setlocal nowrap')
   sidebar_buffer = vim.buffers[len(vim.buffers)]
   sidebar_buffer.name='sidebar'
   
@@ -37,10 +38,11 @@ if vim_launch_directory is not None:
   #sidebar_buffer[:] = None  # Remove all content
   #sidebar_buffer[0] = '--line 0--'
   #sidebar_buffer.append(["Hello", "World"]) # Adds to bottom (blank line at top)
-  sidebar_buffer[:] = ["Hello", "World"]
+  #sidebar_buffer[:] = ["Hello", "World"]  # Works
+
   
   if os.path.isdir(vim_launch_directory):
-    sidebar_buffer[:] = ["Found directory"]
+    #sidebar_buffer[:] = ["Found directory"]
 
     session_path = os.path.join(vim_launch_directory, '.geany', config_session_file)
     if os.path.isfile( session_path ):
@@ -59,15 +61,13 @@ if vim_launch_directory is not None:
           m = key_matcher.match(k)
           if m:
             order = int(m.group(1))
-            if order not in d:
-              d[order]=dict()
+            if order not in d: d[order]=dict()
             d[order][m.group(2)] = v
         line_matcher = re.compile("(.*?)\:([\d\.]+)$")
         for k,vd in sorted(d.items()):  # Here, vd is dictionary of data about each 'k' item
           if '' in vd: # This is a file (the default type of item)
             file_relative = vd['']
-            at_line = 1
-            m = line_matcher.match(file_relative)
+            m, at_line = line_matcher.match(file_relative), 1
             if m:  # This only matches if there's a line number there
               file_relative = m.group(1)
               at_line = int(m.group(2))
@@ -76,3 +76,4 @@ if vim_launch_directory is not None:
             #doc = geany.document.open_file(filepath)
             #doc.editor.goto_pos(at_line)
             sidebar_buffer.append( file_relative )
+            #vim.command(f':edit {file_relative:s}') 
