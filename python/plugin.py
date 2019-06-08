@@ -24,12 +24,30 @@ if vim_launch_directory is not None:
   # Stuff to initialise plugin view here
   # https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/creator.vim#L187
   vim.command(f'topleft vertical {sidebar_width:d} new') 
+
+  # https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/creator.vim#L288
+  #" Options for a non-file/control buffer.
+  vim.command(f'setlocal bufhidden=hide')
+  vim.command(f'setlocal buftype=nofile')
+  vim.command(f'setlocal noswapfile')
+
+  #" Options for controlling buffer/window appearance.
+  vim.command(f'setlocal foldcolumn=0')
+  vim.command(f'setlocal foldmethod=manual')
+  vim.command(f'setlocal nobuflisted')
+  vim.command(f'setlocal nofoldenable')
+  vim.command(f'setlocal nolist')
+  vim.command(f'setlocal nospell')
   vim.command(f'setlocal nowrap')
-  sidebar_buffer = vim.buffers[len(vim.buffers)]
+  
+  vim.command(f'setlocal nu')  # Linenumbers
+  #vim.command(f'setlocal rnu')  # Relative linenumbers
+  
+  sidebar_buffer = vim.buffers[len(vim.buffers)]  # 'sidebar' is the last opened buffer
   sidebar_buffer.name='sidebar'
   
   # https://vimhelp.org/options.txt.html#global-local
-  sidebar_buffer.options['buftype']='nofile' # no need to write this file on exit
+  #sidebar_buffer.options['buftype']='nofile' # no need to write this file on exit
   
   #vim.command(f'file {sidebar_buffer:s}') 
   #vim.command(f'edit {sidebar_buffer:s}') 
