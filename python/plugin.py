@@ -103,9 +103,9 @@ if vim_launch_directory is not None:
         config.readfp(fin)
       
       # (type, label, arr/filename)
-      # ('g', label, arr)
+      # ('g', label, arr)  # g=closed, G=open
       # ('f', label, filename)
-      tree=[ ('g', '-', []) ]
+      tree=[ ('G', '-', []) ]
       def _load_project_tree_branch(section, arr):
         ## Create a nice dictionary of stuff from this section - each integer(sorted) can contain several entries
         key_matcher = re.compile("(\d+)-?(\S*)")
@@ -133,10 +133,24 @@ if vim_launch_directory is not None:
               arr.append( ('g', group, [] ) )
               ### Descend with parent=iter
               _load_project_tree_branch(section+'/'+group, arr[-1][2] )  # Add to group's array
-        
+      
+      def _render_in_sidebar(arr, indent=0):
+        for ele in arr:
+          if 'f'==ele[0]: # Filenode
+            sidebar_buffer.append(' '*indent + '  ' +ele[1] )
+          elif 'g'==ele[0]: # closed group
+            sidebar_buffer.append(' '*indent + '> ' +ele[1] )
+          elif 'G'==ele[0]: # open group
+            sidebar_buffer.append(' '*indent + 'v ' +ele[1] )
+            _render_in_sidebar(ele[2], indent=indent+2)
+      
       if config.has_section('.'):
         #print("Found Root!")
         #model.clear()
         _load_project_tree_branch('.', tree[-1][2])
-        print(tree)
+        #print(tree)
+        sidebar_buffer[:]=None # Empty
+        _render_in_sidebar(tree[0][2])
+        #del sidebar_buffer[0]
+        sidebar_buffer[0]='[Save Project]'
 
