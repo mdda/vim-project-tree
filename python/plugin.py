@@ -19,9 +19,19 @@ sidebar_width=30
 #  new_line = current_line[:col] + _get_country() + current_line[col:]
 #  vim.current.buffer[row-1] = new_line
 
+class Sideline:
+  def __init__(self, sidetype, label, filename=None, is_open=False):
+    self.sidetype=sidetype
+    self.label=label
+    self.position=None
+    if 'f'==self.sidetype:
+      self.filename=filename
+    else:
+      self.children=[]
+      self.is_open=is_open
+
 if vim_launch_directory is not None:
-  pass
-  # Stuff to initialise plugin view here
+  # Code to initialise plugin view here
   # https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/creator.vim#L187
   vim.command(f'topleft vertical {sidebar_width:d} new') 
 
@@ -42,7 +52,11 @@ if vim_launch_directory is not None:
   
   vim.command(f'setlocal nu')  # Linenumbers
   #vim.command(f'setlocal rnu')  # Relative linenumbers
-  
+
+  vim.command(f'setlocal cursorline')  # underlines current cursor line (looks Ok)
+    
+  #vim.command(f'iabc <buffer>')  # ???
+
   sidebar_buffer = vim.buffers[len(vim.buffers)]  # 'sidebar' is the last opened buffer
   sidebar_buffer.name='sidebar'
   
@@ -58,7 +72,7 @@ if vim_launch_directory is not None:
   #sidebar_buffer.append(["Hello", "World"]) # Adds to bottom (blank line at top)
   #sidebar_buffer[:] = ["Hello", "World"]  # Works
 
-  
+
   if os.path.isdir(vim_launch_directory):
     #sidebar_buffer[:] = ["Found directory"]
 
@@ -102,10 +116,6 @@ if vim_launch_directory is not None:
         config = configparser.ConfigParser()
         config.readfp(fin)
       
-      # (type, label, arr/filename)
-      # ('g', label, arr)  # g=closed, G=open
-      # ('f', label, filename)
-      tree=[ ('G', '-', []) ]
       def _load_project_tree_branch(section, arr):
         ## Create a nice dictionary of stuff from this section - each integer(sorted) can contain several entries
         key_matcher = re.compile("(\d+)-?(\S*)")
@@ -121,36 +131,43 @@ if vim_launch_directory is not None:
         for k,vd in sorted(d.items()):  # Here, vd is dictionary of data about each 'k' item
           if '' in vd: # This is a file (the default ending)
             ## Just add the file to the tree where we are
-            #iter = model.append(parent, TreeViewRowFile(vd[''], label=vd.get('label', None)).row)
-            arr.append( ('f', vd[''], None ) ) 
-            # No need to store this 'iter' - can easily append after
+            arr.append( Sideline('f', vd[''], filename=vd['']) )
               
           else:  # This is something special
             if 'group' in vd:
               group = vd['group']
               ## Add the group to the tree, and recursively go after that section...
-              #iter = model.append(parent, TreeViewRowGroup(group, label=vd.get('label', None)).row)
-              arr.append( ('g', group, [] ) )
+              arr.append( Sideline('g', group, is_open=False) )
               ### Descend with parent=iter
-              _load_project_tree_branch(section+'/'+group, arr[-1][2] )  # Add to group's array
-      
+              _load_project_tree_branch(section+'/'+group, arr[-1].children )  # Add to group's children array
+
+      def _reset_positions(arr):
+        for ele in arr:
+          ele.position=None
+          if 'g'==ele.sidetype: 
+            _reset_positions(ele.children)
+          
       def _render_in_sidebar(arr, indent=0):
         for ele in arr:
-          if 'f'==ele[0]: # Filenode
-            sidebar_buffer.append(' '*indent + '  ' +ele[1] )
-          elif 'g'==ele[0]: # closed group
-            sidebar_buffer.append(' '*indent + '> ' +ele[1] )
-          elif 'G'==ele[0]: # open group
-            sidebar_buffer.append(' '*indent + 'v ' +ele[1] )
-            _render_in_sidebar(ele[2], indent=indent+2)
+          ele.position=len(sidebar_buffer)+1 # For vim line numbering
+          if 'f'==ele.sidetype: # Filenode
+            sidebar_buffer.append(' '*indent + '  ' +ele.label + str(ele.position))
+          elif 'g'==ele.sidetype: # Group
+            if ele.is_open:
+              sidebar_buffer.append(' '*indent + 'v ' +ele.label )
+              _render_in_sidebar(ele.children, indent=indent+2)
+            else:
+              sidebar_buffer.append(' '*indent + '> ' +ele.label )
       
+      tree_root = []
       if config.has_section('.'):
-        #print("Found Root!")
-        #model.clear()
-        _load_project_tree_branch('.', tree[-1][2])
+        _load_project_tree_branch('.', tree_root)
         #print(tree)
-        sidebar_buffer[:]=None # Empty
-        _render_in_sidebar(tree[0][2])
-        #del sidebar_buffer[0]
-        sidebar_buffer[0]='[Save Project]'
+        
+      sidebar_buffer[:]=None # Empty
+      _reset_positions(tree_root)
+      _render_in_sidebar(tree_root)
+      
+      #del sidebar_buffer[0]
+      sidebar_buffer[0]='[Save Project]'
 
