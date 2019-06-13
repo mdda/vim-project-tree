@@ -54,7 +54,11 @@ if vim_launch_directory is not None:
   #vim.command(f'setlocal rnu')  # Relative linenumbers
 
   vim.command(f'setlocal cursorline')  # underlines current cursor line (looks Ok)
-    
+
+  vim.command(f'nnoremap <buffer> <CR> :SidebarEnter<CR>')
+
+
+
   #vim.command(f'iabc <buffer>')  # ???
 
   sidebar_buffer = vim.buffers[len(vim.buffers)]  # 'sidebar' is the last opened buffer
@@ -171,3 +175,6 @@ if vim_launch_directory is not None:
       #del sidebar_buffer[0]
       sidebar_buffer[0]='[Save Project]'
 
+def sidebar_enter():
+  sidebar_buffer.append("ENTER")
+  
