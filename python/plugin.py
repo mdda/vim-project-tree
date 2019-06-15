@@ -55,8 +55,13 @@ if vim_launch_directory is not None:
 
   vim.command(f'setlocal cursorline')  # underlines current cursor line (looks Ok)
 
-  vim.command(f'nnoremap <buffer> <CR> :SidebarEnter<CR>')
-
+  #vim.command(f'nnoremap <buffer> <CR> :SidebarEnter<CR>')  # Calls via command! -> function! -> python
+  #https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/key_map.vim#L58
+  # <silent> 
+  #vim.command(f'nnoremap <buffer> <CR> :python3 plugin.sidebar_enter()<CR>')  # Calls into python directly
+  for key, value in {'<CR>':'cr', }.items():
+    vim.command(f'nnoremap <buffer> <silent> {key} :python3 plugin.sidebar_key("{value}")<CR>')  # Calls into python directly
+  
 
 
   #vim.command(f'iabc <buffer>')  # ???
@@ -175,6 +180,9 @@ if vim_launch_directory is not None:
       #del sidebar_buffer[0]
       sidebar_buffer[0]='[Save Project]'
 
-def sidebar_enter():
-  sidebar_buffer.append("ENTER")
+#def sidebar_enter():
+#  sidebar_buffer.append("ENTER")
+  
+def sidebar_key(key):
+  sidebar_buffer.append(f"KeyPress = '{key}'")
   
