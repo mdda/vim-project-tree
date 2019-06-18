@@ -35,10 +35,28 @@ if vim_launch_directory is not None:
   # https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/creator.vim#L187
   vim.command(f'topleft vertical {sidebar_width:d} new') 
 
+  #vim.command(f'nnoremap <buffer> <CR> :SidebarEnter<CR>')  # Calls via command! -> function! -> python
+  #https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/key_map.vim#L58
+  # <silent> 
+  #vim.command(f'nnoremap <buffer> <CR> :python3 plugin.sidebar_enter()<CR>')  # Calls into python directly
+  for key, value in {'<CR>':'cr', }.items():
+    vim.command(f'nnoremap <buffer> <silent> {key} :python3 plugin.sidebar_key("{value}")<CR>')  # Calls into python directly
+  
+
+  sidebar_buffer = vim.buffers[len(vim.buffers)]  # 'sidebar' is the last opened buffer
+  sidebar_buffer.name='sidebar'
+
   # https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/creator.vim#L288
   #" Options for a non-file/control buffer.
-  vim.command(f'setlocal bufhidden=hide')
-  vim.command(f'setlocal buftype=nofile')
+  
+  # https://vimhelp.org/options.txt.html#global-local
+  #vim.command(f'setlocal bufhidden=hide')
+  #vim.command(f'setlocal buftype=nofile')
+  sidebar_buffer.options['bufhidden']='hide' # no need to list this file in buffers
+  sidebar_buffer.options['buftype']='nofile' # no need to write this file on exit
+  
+  sidebar_buffer.options['modifiable']='off' # no changes allowed (??works??)
+  
   vim.command(f'setlocal noswapfile')
 
   #" Options for controlling buffer/window appearance.
@@ -48,29 +66,17 @@ if vim_launch_directory is not None:
   vim.command(f'setlocal nofoldenable')
   vim.command(f'setlocal nolist')
   vim.command(f'setlocal nospell')
+  
   vim.command(f'setlocal nowrap')
+  #sidebar_buffer.options['wrap']='off' # RHS falls off (no wrapping of text)  FAIL
   
   vim.command(f'setlocal nu')  # Linenumbers
   #vim.command(f'setlocal rnu')  # Relative linenumbers
 
   vim.command(f'setlocal cursorline')  # underlines current cursor line (looks Ok)
 
-  #vim.command(f'nnoremap <buffer> <CR> :SidebarEnter<CR>')  # Calls via command! -> function! -> python
-  #https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/key_map.vim#L58
-  # <silent> 
-  #vim.command(f'nnoremap <buffer> <CR> :python3 plugin.sidebar_enter()<CR>')  # Calls into python directly
-  for key, value in {'<CR>':'cr', }.items():
-    vim.command(f'nnoremap <buffer> <silent> {key} :python3 plugin.sidebar_key("{value}")<CR>')  # Calls into python directly
-  
-
-
   #vim.command(f'iabc <buffer>')  # ???
 
-  sidebar_buffer = vim.buffers[len(vim.buffers)]  # 'sidebar' is the last opened buffer
-  sidebar_buffer.name='sidebar'
-  
-  # https://vimhelp.org/options.txt.html#global-local
-  #sidebar_buffer.options['buftype']='nofile' # no need to write this file on exit
   
   #vim.command(f'file {sidebar_buffer:s}') 
   #vim.command(f'edit {sidebar_buffer:s}') 
@@ -156,6 +162,14 @@ if vim_launch_directory is not None:
           if 'g'==ele.sidetype: 
             _reset_positions(ele.children)
           
+      def _scan_tree(arr, position):
+        for ele in arr:
+          if ele.position==position:
+            return ele
+          if 'g'==ele.sidetype: 
+            _scan_tree(ele.children, position)
+        return None
+          
       def _render_in_sidebar(arr, indent=0):
         for ele in arr:
           ele.position=len(sidebar_buffer)+1 # For vim line numbering
@@ -183,6 +197,13 @@ if vim_launch_directory is not None:
 #def sidebar_enter():
 #  sidebar_buffer.append("ENTER")
   
+  
+  
 def sidebar_key(key):
   sidebar_buffer.append(f"KeyPress = '{key}'")
+  row, col = vim.current.window.cursor
+  
+  row_line = _scan_tree(tree_root, row)
+  if row_line is not None:
+    sidebar_buffer.append(f"line = '{row_line.label}'")
   
