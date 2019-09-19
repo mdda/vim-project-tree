@@ -5,6 +5,8 @@ The skeleton of this project was taken from [this template repo](https://github.
 Key references are going to be :
 *  https://github.com/scrooloose/nerdtree/tree/master/lib/nerdtree
 *  https://www.tummy.com/presentations/vimpython-20070225/
+*  https://vimhelp.org/if_pyth.txt.html
+*  https://devhints.io/vimscript
 
 
 

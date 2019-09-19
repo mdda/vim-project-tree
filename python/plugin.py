@@ -174,7 +174,7 @@ if vim_launch_directory is not None:
         for ele in arr:
           ele.position=len(sidebar_buffer)+1 # For vim line numbering
           if 'f'==ele.sidetype: # Filenode
-            sidebar_buffer.append(' '*indent + '  ' +ele.label + str(ele.position))
+            sidebar_buffer.append(' '*indent + '  ' +ele.label)  #  + str(ele.position)
           elif 'g'==ele.sidetype: # Group
             if ele.is_open:
               sidebar_buffer.append(' '*indent + 'v ' +ele.label )
@@ -186,13 +186,16 @@ if vim_launch_directory is not None:
       if config.has_section('.'):
         _load_project_tree_branch('.', tree_root)
         #print(tree)
-        
-      sidebar_buffer[:]=None # Empty
-      _reset_positions(tree_root)
-      _render_in_sidebar(tree_root)
       
-      #del sidebar_buffer[0]
-      sidebar_buffer[0]='[Save Project]'
+      def _redraw_sidebar():
+        sidebar_buffer[:]=None # Empty
+        _reset_positions(tree_root)
+        _render_in_sidebar(tree_root)
+        #del sidebar_buffer[0]
+        sidebar_buffer[0]='[Save Project]'
+        
+      _redraw_sidebar()
+      
 
 #def sidebar_enter():
 #  sidebar_buffer.append("ENTER")
@@ -206,4 +209,10 @@ def sidebar_key(key):
   row_line = _scan_tree(tree_root, row)
   if row_line is not None:
     sidebar_buffer.append(f"line = '{row_line.label}'")
+    if 'g'==row_line.sidetype:
+      row_line.is_open = not row_line.is_open
+      _redraw_sidebar()
+      vim.current.window.cursor = row, col
+    
+      
   
