@@ -56,6 +56,8 @@ if vim_launch_directory is not None:
   sidebar_buffer.options['buftype']='nofile' # no need to write this file on exit
   
   sidebar_buffer.options['modifiable']='off' # no changes allowed (??works??)
+  #vim.command(f'setlocal modifiable')  
+  #vim.command(f'setlocal nomodifiable')  # Actually works (a little too well)  
   
   vim.command(f'setlocal noswapfile')
 
@@ -65,6 +67,7 @@ if vim_launch_directory is not None:
   vim.command(f'setlocal nobuflisted')
   vim.command(f'setlocal nofoldenable')
   vim.command(f'setlocal nolist')
+  
   vim.command(f'setlocal nospell')
   
   vim.command(f'setlocal nowrap')
@@ -203,16 +206,33 @@ if vim_launch_directory is not None:
   
   
 def sidebar_key(key):
-  sidebar_buffer.append(f"KeyPress = '{key}'")
+  #sidebar_buffer.append(f"KeyPress = '{key}'")
   row, col = vim.current.window.cursor
   
   row_line = _scan_tree(tree_root, row)
   if row_line is not None:
-    sidebar_buffer.append(f"line = '{row_line.label}'")
+    #sidebar_buffer.append(f"line = '{row_line.label}'")
     if 'g'==row_line.sidetype:
       row_line.is_open = not row_line.is_open
       _redraw_sidebar()
       vim.current.window.cursor = row, col
-    
+    else:
+      #vim.command(f'edit {row_line.filename:s}')       
+      # Find a buffer with the right name that is not the sidebar
+      found=False
+      for buf in vim.buffers:
+        if 'sidebar'==buf.name: continue
+        #sidebar_buffer.append(f"buf[{buf.number:d}]='{buf.name:s}'")
+        if buf.name==row_line.filename:
+          buf.options['bufhidden']=''
+          vim.command(f'wincmd l')  
+          found=True
+          sidebar_buffer.append(f"FOUND")
+        else:
+          buf.options['bufhidden']='hide'
+          #sidebar_buffer.append(f"Hide this")
+      if not found:
+        vim.command(f'wincmd l')  
+        vim.command(f'edit {row_line.filename:s}')     
       
   
