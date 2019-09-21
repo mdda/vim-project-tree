@@ -20,8 +20,9 @@ log_height, log_buffer =  10,None
 #  new_line = current_line[:col] + _get_country() + current_line[col:]
 #  vim.current.buffer[row-1] = new_line
 
-def log(txt):
+def log(txt, clear=False):
   if log_buffer is None: return
+  if clear: log_buffer[:]=None
   log_buffer.append(txt)
   
 class Sideline:
@@ -55,7 +56,7 @@ if vim_launch_directory is not None:
   #https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/key_map.vim#L58
   # <silent> 
   #vim.command(f'nnoremap <buffer> <CR> :python3 plugin.sidebar_enter()<CR>')  # Calls into python directly
-  for key, value in {'<CR>':'cr', }.items():
+  for key, value in {'<CR>':'Select', '+':'AddGroup', '-':'Remove'}.items():
     vim.command(f'nnoremap <buffer> <silent> {key} :python3 plugin.sidebar_key("{value}")<CR>')  # Calls into python directly
   
 
@@ -233,32 +234,24 @@ if vim_launch_directory is not None:
 #  sidebar_buffer.append("ENTER")
   
 def sidebar_key(key):
-  #log(f"")
-  #log(f"KeyPress = '{key}'")
   row, col = vim.current.window.cursor
-  #log(f"RowIdx = '{row}'")
-  _log_tree(tree_root)
+  log(f"KeyPress = '{key}' at {row}", clear=True)
   
-  row_line = _scan_tree(tree_root, row)
-  #log(f"RowFound = '{row_line}'")
-  if row_line is not None:
-    #log(f"line = '{row_line.label}'")
-    if 'g'==row_line.sidetype:
-      row_line.is_open = not row_line.is_open
-      _redraw_sidebar()
-      vim.current.window.cursor = row, col
-    else:
-      #vim.command(f'edit {row_line.filename:s}')       
-      # Find a buffer with the right name that is not the sidebar
-      #found=False
-      #for buf in vim.buffers:
-      #  if 'sidebar'==buf.name: continue
-      #  #sidebar_buffer.append(f"buf[{buf.number:d}]='{buf.name:s}'")
-      #  #if buf.name==row_line.filename:
-      #  #  vim.command(f'wincmd l')  
-      #  #  found=True
-      #  #  sidebar_buffer.append(f"FOUND")
-      filename=row_line.filename
-      #log(f"{filename:s}")
-      vim.command(f'wincmd l')  
-      vim.command(f'edit {filename:s}')     
+  if 'Select'==key:
+    _log_tree(tree_root)
+    row_line = _scan_tree(tree_root, row)
+    #log(f"RowFound = '{row_line}'")
+    
+    if row_line is not None:
+      #log(f"line = '{row_line.label}'")
+      if 'g'==row_line.sidetype:
+        row_line.is_open = not row_line.is_open
+        _redraw_sidebar()
+        vim.current.window.cursor = row, col
+      else:
+        filename=row_line.filename
+        #log(f" -> {filename:s}")
+        vim.command(f'wincmd l')  
+        vim.command(f'edit {filename:s}')     
+  else:
+    log("Unhandled keypress")
