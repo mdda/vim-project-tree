@@ -39,6 +39,9 @@ if vim_launch_directory is not None:
   # Code to initialise plugin view here
   # https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/creator.vim#L187
 
+  # Global set of 'hidden' : https://medium.com/usevim/vim-101-set-hidden-f78800142855
+  vim.command(f'set hidden')  
+
   if log_height>0:
     vim.command(f'belowright {log_height:d} new') 
     log_buffer=vim.buffers[len(vim.buffers)]  # 'sidebar' is the last opened buffer
@@ -105,16 +108,18 @@ if vim_launch_directory is not None:
 
 
   if os.path.isdir(vim_launch_directory):
-    #sidebar_buffer[:] = ["Found directory"]
-
+    #log("Found launch directory")
     session_path = os.path.join(vim_launch_directory, '.geany', config_session_file)
-    if False and os.path.isfile( session_path ):
-      # https://docs.python.org/3/library/configparser.html
+    #if False:
+    if os.path.isfile( session_path ):
+      vim.command(f'wincmd l')  
+      
       with open(session_path, 'r') as fin:
+        # https://docs.python.org/3/library/configparser.html
         config = configparser.ConfigParser()
         config.readfp(fin)
         
-      print("Sections", config.sections())
+      #print("Sections", config.sections())
       open_files_section = "open-files"
       if config.has_section(open_files_section):
         key_matcher = re.compile("(\d+)-?(\S*)")
@@ -126,6 +131,7 @@ if vim_launch_directory is not None:
             order = int(m.group(1))
             if order not in d: d[order]=dict()
             d[order][m.group(2)] = v
+            
         line_matcher = re.compile("(.*?)\:([\d\.]+)$")
         for k,vd in sorted(d.items()):  # Here, vd is dictionary of data about each 'k' item
           if '' in vd: # This is a file (the default type of item)
@@ -134,12 +140,11 @@ if vim_launch_directory is not None:
             if m:  # This only matches if there's a line number there
               file_relative = m.group(1)
               at_line = int(m.group(2))
-            print("LOADING : file_relative:line = %s:%d" % (file_relative, at_line,))
-            #filepath = os.path.join(self.config_base_directory, file_relative)
-            #doc = geany.document.open_file(filepath)
-            #doc.editor.goto_pos(at_line)
-            sidebar_buffer.append( file_relative )
-            #vim.command(f':edit {file_relative:s}') 
+            log(f"LOADING : file_relative:line = {file_relative:s}:{at_line:d}")
+            vim.command(f'silent edit {file_relative:s}') 
+            vim.current.window.cursor = at_line,0
+            
+      vim.command(f'wincmd t')  # top-left window
 
     tree_path = os.path.join(vim_launch_directory, '.geany', config_tree_layout_file)
     if os.path.isfile( tree_path ):
