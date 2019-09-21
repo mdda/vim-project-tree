@@ -12,6 +12,7 @@ config_tree_layout_file = "project-tree-layout.ini"
 config_session_file     = "session.ini"
 
 sidebar_width=30
+log_height, log_buffer =  10,None
 
 #def insert_country():
 #  row, col = vim.current.window.cursor
@@ -19,6 +20,10 @@ sidebar_width=30
 #  new_line = current_line[:col] + _get_country() + current_line[col:]
 #  vim.current.buffer[row-1] = new_line
 
+def log(txt):
+  if log_buffer is None: return
+  log_buffer.append(txt)
+  
 class Sideline:
   def __init__(self, sidetype, label, filename=None, is_open=False):
     self.sidetype=sidetype
@@ -33,6 +38,14 @@ class Sideline:
 if vim_launch_directory is not None:
   # Code to initialise plugin view here
   # https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/creator.vim#L187
+
+  if log_height>0:
+    vim.command(f'belowright {log_height:d} new') 
+    log_buffer=vim.buffers[len(vim.buffers)]  # 'sidebar' is the last opened buffer
+    log_buffer.name='plugin.log'
+    log_buffer.options['bufhidden']='hide' # no need to list this file in buffers
+    log_buffer.options['buftype']='nofile' # no need to write this file on exit
+    
   vim.command(f'topleft vertical {sidebar_width:d} new') 
 
   #vim.command(f'nnoremap <buffer> <CR> :SidebarEnter<CR>')  # Calls via command! -> function! -> python
@@ -166,24 +179,35 @@ if vim_launch_directory is not None:
             _reset_positions(ele.children)
           
       def _scan_tree(arr, position):
+        found=None
         for ele in arr:
           if ele.position==position:
-            return ele
-          if 'g'==ele.sidetype: 
-            _scan_tree(ele.children, position)
-        return None
-          
-      def _render_in_sidebar(arr, indent=0):
+            found=ele
+            break
+          if 'g'==ele.sidetype and ele.is_open:
+            below=_scan_tree(ele.children, position)
+            if below is not None:
+              found=below
+              break
+        return found
+
+      def _log_tree(arr):
         for ele in arr:
-          ele.position=len(sidebar_buffer)+1 # For vim line numbering
+          log(f'* {ele.label:s}:{ele.position}')
+          if 'g'==ele.sidetype:  # Ignore is_open
+            _log_tree(ele.children)
+          
+      def _render_in(buf, arr, indent=0):
+        for ele in arr:
+          ele.position=len(buf)+1 # For vim line numbering
           if 'f'==ele.sidetype: # Filenode
-            sidebar_buffer.append(' '*indent + '  ' +ele.label)  #  + str(ele.position)
+            buf.append(' '*indent + '  ' +ele.label)  #  + str(ele.position)
           elif 'g'==ele.sidetype: # Group
             if ele.is_open:
-              sidebar_buffer.append(' '*indent + 'v ' +ele.label )
-              _render_in_sidebar(ele.children, indent=indent+2)
+              buf.append(' '*indent + 'v ' +ele.label )
+              _render_in(buf, ele.children, indent=indent+2)
             else:
-              sidebar_buffer.append(' '*indent + '> ' +ele.label )
+              buf.append(' '*indent + '> ' +ele.label )
       
       tree_root = []
       if config.has_section('.'):
@@ -193,7 +217,7 @@ if vim_launch_directory is not None:
       def _redraw_sidebar():
         sidebar_buffer[:]=None # Empty
         _reset_positions(tree_root)
-        _render_in_sidebar(tree_root)
+        _render_in(sidebar_buffer, tree_root)
         #del sidebar_buffer[0]
         sidebar_buffer[0]='[Save Project]'
         
@@ -203,15 +227,17 @@ if vim_launch_directory is not None:
 #def sidebar_enter():
 #  sidebar_buffer.append("ENTER")
   
-  
-  
 def sidebar_key(key):
-  #sidebar_buffer.append(f"KeyPress = '{key}'")
+  #log(f"")
+  #log(f"KeyPress = '{key}'")
   row, col = vim.current.window.cursor
+  #log(f"RowIdx = '{row}'")
+  _log_tree(tree_root)
   
   row_line = _scan_tree(tree_root, row)
+  #log(f"RowFound = '{row_line}'")
   if row_line is not None:
-    #sidebar_buffer.append(f"line = '{row_line.label}'")
+    #log(f"line = '{row_line.label}'")
     if 'g'==row_line.sidetype:
       row_line.is_open = not row_line.is_open
       _redraw_sidebar()
@@ -219,20 +245,15 @@ def sidebar_key(key):
     else:
       #vim.command(f'edit {row_line.filename:s}')       
       # Find a buffer with the right name that is not the sidebar
-      found=False
-      for buf in vim.buffers:
-        if 'sidebar'==buf.name: continue
-        #sidebar_buffer.append(f"buf[{buf.number:d}]='{buf.name:s}'")
-        if buf.name==row_line.filename:
-          buf.options['bufhidden']=''
-          vim.command(f'wincmd l')  
-          found=True
-          sidebar_buffer.append(f"FOUND")
-        else:
-          buf.options['bufhidden']='hide'
-          #sidebar_buffer.append(f"Hide this")
-      if not found:
-        vim.command(f'wincmd l')  
-        vim.command(f'edit {row_line.filename:s}')     
-      
-  
+      #found=False
+      #for buf in vim.buffers:
+      #  if 'sidebar'==buf.name: continue
+      #  #sidebar_buffer.append(f"buf[{buf.number:d}]='{buf.name:s}'")
+      #  #if buf.name==row_line.filename:
+      #  #  vim.command(f'wincmd l')  
+      #  #  found=True
+      #  #  sidebar_buffer.append(f"FOUND")
+      filename=row_line.filename
+      #log(f"{filename:s}")
+      vim.command(f'wincmd l')  
+      vim.command(f'edit {filename:s}')     
