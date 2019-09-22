@@ -56,9 +56,8 @@ if vim_launch_directory is not None:
   #https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/key_map.vim#L58
   # <silent> 
   #vim.command(f'nnoremap <buffer> <CR> :python3 plugin.sidebar_enter()<CR>')  # Calls into python directly
-  for key, value in {'<CR>':'Select', '+':'AddGroup', '-':'Remove'}.items():
+  for key, value in {'<CR>':'Select', '+':'AddFile', 'g':'AddGroup', '-':'Remove', 'm':'Move', 'r':'Rename', 'p':'SaveProject', 's':'SaveSession', }.items():
     vim.command(f'nnoremap <buffer> <silent> {key} :python3 plugin.sidebar_key("{value}")<CR>')  # Calls into python directly
-  
 
   sidebar_buffer = vim.buffers[len(vim.buffers)]  # 'sidebar' is the last opened buffer
   sidebar_buffer.name='sidebar'
@@ -225,7 +224,7 @@ if vim_launch_directory is not None:
         _reset_positions(tree_root)
         _render_in(sidebar_buffer, tree_root)
         #del sidebar_buffer[0]
-        sidebar_buffer[0]='[Save Project]'
+        sidebar_buffer[0]='[Vim Project Tree]'
         
       _redraw_sidebar()
       
@@ -236,10 +235,10 @@ if vim_launch_directory is not None:
 def sidebar_key(key):
   row, col = vim.current.window.cursor
   log(f"KeyPress = '{key}' at {row}", clear=True)
+  row_line = _scan_tree(tree_root, row)  # Almost always used
   
   if 'Select'==key:
-    _log_tree(tree_root)
-    row_line = _scan_tree(tree_root, row)
+    #_log_tree(tree_root)
     #log(f"RowFound = '{row_line}'")
     
     if row_line is not None:
@@ -252,6 +251,15 @@ def sidebar_key(key):
         filename=row_line.filename
         #log(f" -> {filename:s}")
         vim.command(f'wincmd l')  
-        vim.command(f'edit {filename:s}')     
+        vim.command(f'edit {filename:s}') 
+        
+  elif 'AddGroup'==key:
+    #vim.command("call inputsave()")
+    name=vim.eval("input('Enter name for new Group : ')")
+    #vim.command("call inputrestore()")
+    
+    log(f"New Group Name='{name}'")
+    
+    
   else:
     log("Unhandled keypress")
