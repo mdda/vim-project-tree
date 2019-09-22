@@ -39,8 +39,8 @@ The project-tree plugin's files are stored in a '.geany' directory (it will conf
  * .geany
    + project-tree-layout.ini
    + session.ini
-   + [OPTIONAL: project-tree-layout_devel.ini]
-   + [OPTIONAL: session_default.ini ] 
+   + [TODO: project-tree-layout_devel.ini]
+   + [TODO: session_default.ini ] 
  * ... the rest of your files ...
 
 Of these files:
@@ -52,18 +52,15 @@ Of these files:
  
 ## Usage 
 
-*All TODO for the vim version*
-
-The project-tree sidebar can be right-clicked, to get to :
- * 'Add this file', which adds the currently open document to the project-tree
- * 'Add group', which adds a new group heading
- * and other functions that should be obvious
+The project-tree sidebar has keys assigned, their operation refers to the current cursor line within the sidebar :
+ * 'Enter' - open file, or open/close group based on the current line
+ * TODO : '+' - Add this file, which adds the currently open document to the project-tree below the current line
+ * TODO : 'g &lt;name&gt;' - Add group, which adds a new group heading below the current line
+ * TODO : 'm &lt;destination&gt;' - Move current entry to after the specified line. If destination is negative : Remove
+ * TODO : 'p' - Save project-tree
+ * TODO : 's' - Save current session
  
-It also allows drag-and-drop internally, so you can organize files & groups to your heart's content.
-
-At the top of the sidebar is a quick menu, allowing you to Load/Save the Project-Tree layout, and current open files.
-
-When loaded for the first time in a directory, it's immediately ready to use : It will ask whether to create the 
+MAYBE : When loaded for the first time in a directory, it's immediately ready to use : It will ask whether to create the 
 '.geany' folder if you need to save the tree or the session.
 
 
