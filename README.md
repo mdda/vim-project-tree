@@ -57,7 +57,7 @@ The project-tree sidebar has keys assigned, their operation refers to the curren
  * 'f' - Add the currently open document filename below the current line
  * 'g' - Add a new group heading below the current line (prompts for name)
  * 'd' - Delete current entry (after confirmation prompt)
- * TODO : 'r' - Rename current entry (after prompt)
+ * 'r' - Rename current entry (prompts for name)
  * TODO : 'm' - Move current entry to after the line given in response to a prompt
  * TODO : 'p' - Save project-tree
  * TODO : 's' - Save current session

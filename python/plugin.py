@@ -311,6 +311,18 @@ def sidebar_key(key):
         _delete_from_tree(tree_root, row)
         _redraw_sidebar()
         vim.current.window.cursor = row-1, col
+
+  elif 'Rename'==key:
+    if row_line is not None:
+      name=vim.eval(f"""input('Enter new name for "{row_line.label}" : ')""")
+      log(f"New Name='{name}'")
+      if 0==len(name): return # Nothing to do
+      row_line.label=name
+      _redraw_sidebar()
+      vim.current.window.cursor = row-1, col
+      
+
+
     
   else:
     log("Unhandled keypress")
