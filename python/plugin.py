@@ -238,6 +238,17 @@ if vim_launch_directory is not None:
 
 #def sidebar_enter():
 #  sidebar_buffer.append("ENTER")
+
+def _insert_element_at_row(row_line, element_new):
+  if row_line is None:  # Add to start of Tree
+    tree_root.insert(0, element_new)
+  else:
+    if 'g'==row_line.sidetype and row_line.is_open:  # insert new child
+      row_line.children.insert(0, element_new )
+    else: # new entry goes after row_line on same level
+      _insert_in_tree(tree_root, row_line.position, element_new)
+  _redraw_sidebar()
+
   
 def sidebar_key(key):
   row, col = vim.current.window.cursor
@@ -269,8 +280,10 @@ def sidebar_key(key):
     if 0==len(name): return # Nothing to do
 
     element_new=Sideline('g', name, is_open=False)
-    #_insert_element_at_row(tree_root, row_line, element_new)
+    _insert_element_at_row(row_line, element_new)
+    vim.current.window.cursor = row+1, col  # Should be on added line
     
+    """
     if row_line is None:  # Add to start of Tree
       tree_root.insert(0, element_new)
     else:
@@ -280,6 +293,7 @@ def sidebar_key(key):
         _insert_in_tree(tree_root, row, element_new)
     _redraw_sidebar()
     vim.current.window.cursor = row+1, col  # Should be on added line
+    """
 
   elif 'AddFile'==key:
     name='sdfsdf'
