@@ -54,10 +54,10 @@ Of these files:
 
 The project-tree sidebar has keys assigned, their operation refers to the current cursor line within the sidebar :
  * 'Enter' - open file, or open/close group based on the current line
- * TODO : '+' - Add this file, which adds the currently open document below the current line
- * TODO : 'g' - Add group, which adds a new group heading below the current line (prompts for name)
+ * TODO : 'f' - Add this file, which adds the currently open document below the current line
+ * 'g' - Add group, which adds a new group heading below the current line (prompts for name)
  * TODO : 'm' - Move current entry to after the line given in response to a prompt
- * TODO : '-' - Remove current entry (after prompt)
+ * TODO : 'd' - Remove current entry (after prompt)
  * TODO : 'p' - Save project-tree
  * TODO : 's' - Save current session
  

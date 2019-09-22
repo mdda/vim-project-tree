@@ -56,7 +56,7 @@ if vim_launch_directory is not None:
   #https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/key_map.vim#L58
   # <silent> 
   #vim.command(f'nnoremap <buffer> <CR> :python3 plugin.sidebar_enter()<CR>')  # Calls into python directly
-  for key, value in {'<CR>':'Select', '+':'AddFile', 'g':'AddGroup', '-':'Remove', 'm':'Move', 'r':'Rename', 'p':'SaveProject', 's':'SaveSession', }.items():
+  for key, value in {'<CR>':'Select', 'f':'AddFile', 'g':'AddGroup', 'd':'Delete', 'm':'Move', 'r':'Rename', 'p':'SaveProject', 's':'SaveSession', }.items():
     vim.command(f'nnoremap <buffer> <silent> {key} :python3 plugin.sidebar_key("{value}")<CR>')  # Calls into python directly
 
   sidebar_buffer = vim.buffers[len(vim.buffers)]  # 'sidebar' is the last opened buffer
@@ -196,6 +196,13 @@ if vim_launch_directory is not None:
               break
         return found
 
+      def _insert_in_tree(arr, position, element_new):
+        for i, ele in enumerate(arr):
+          if ele.position==position:
+            arr.insert(i+1, element_new)
+          if 'g'==ele.sidetype and ele.is_open:
+            _insert_in_tree(ele.children, position, element_new)            
+
       def _log_tree(arr):
         for ele in arr:
           log(f'* {ele.label:s}:{ele.position}')
@@ -244,7 +251,7 @@ def sidebar_key(key):
     if row_line is not None:
       #log(f"line = '{row_line.label}'")
       if 'g'==row_line.sidetype:
-        row_line.is_open = not row_line.is_open
+        row_line.is_open = not row_line.is_open  # Invert
         _redraw_sidebar()
         vim.current.window.cursor = row, col
       else:
@@ -259,7 +266,25 @@ def sidebar_key(key):
     #vim.command("call inputrestore()")
     
     log(f"New Group Name='{name}'")
+    if 0==len(name): return # Nothing to do
+
+    element_new=Sideline('g', name, is_open=False)
+    #_insert_element_at_row(tree_root, row_line, element_new)
     
+    if row_line is None:  # Add to start of Tree
+      tree_root.insert(0, element_new)
+    else:
+      if 'g'==row_line.sidetype and row_line.is_open:  # insert new child
+        row_line.children.insert(0, element_new )
+      else: # new entry goes after row_line on same level
+        _insert_in_tree(tree_root, row, element_new)
+    _redraw_sidebar()
+    vim.current.window.cursor = row+1, col  # Should be on added line
+
+  elif 'AddFile'==key:
+    name='sdfsdf'
+    filename='sdfsdf/sdfsdf'
+    element_new=Sideline('f', name, filename=filename)
     
   else:
     log("Unhandled keypress")
