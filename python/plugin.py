@@ -204,6 +204,14 @@ if vim_launch_directory is not None:
           if 'g'==ele.sidetype and ele.is_open:
             _insert_in_tree(ele.children, position, element_new)            
 
+      def _delete_from_tree(arr, position):
+        for i, ele in enumerate(arr):
+          if ele.position==position:
+            del arr[i]
+            break
+          if 'g'==ele.sidetype and ele.is_open:
+            _delete_from_tree(ele.children, position)
+
       def _log_tree(arr):
         for ele in arr:
           log(f'* {ele.label:s}:{ele.position}')
@@ -294,6 +302,15 @@ def sidebar_key(key):
     element_new=Sideline('f', name, filename=filename)
     _insert_element_at_row(row_line, element_new)
     vim.current.window.cursor = row+1, col  # Should be on added line
+
+  elif 'Delete'==key:
+    if row_line is not None:
+      confirm=vim.eval(f"""input('Type YES to delete "{row_line.label}" : ')""")
+      log(confirm)
+      if 'YES'==confirm: 
+        _delete_from_tree(tree_root, row)
+        _redraw_sidebar()
+        vim.current.window.cursor = row-1, col
     
   else:
     log("Unhandled keypress")
