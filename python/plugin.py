@@ -167,14 +167,15 @@ if vim_launch_directory is not None:
         for k,vd in sorted(d.items()):  # Here, vd is dictionary of data about each 'k' item
           if '' in vd: # This is a file (the default ending)
             ## Just add the file to the tree where we are
-            arr.append( Sideline('f', vd[''], filename=vd['']) )
+            filename = vd['']
+            arr.append( Sideline('f', os.path.basename(filename), filename=filename) )
               
           else:  # This is something special
             if 'group' in vd:
               group = vd['group']
               ## Add the group to the tree, and recursively go after that section...
               arr.append( Sideline('g', group, is_open=False) )
-              ### Descend with parent=iter
+              ### Descend with parent=current
               _load_project_tree_branch(section+'/'+group, arr[-1].children )  # Add to group's children array
 
       def _reset_positions(arr):
@@ -236,9 +237,6 @@ if vim_launch_directory is not None:
       _redraw_sidebar()
       
 
-#def sidebar_enter():
-#  sidebar_buffer.append("ENTER")
-
 def _insert_element_at_row(row_line, element_new):
   if row_line is None:  # Add to start of Tree
     tree_root.insert(0, element_new)
@@ -250,6 +248,9 @@ def _insert_element_at_row(row_line, element_new):
   _redraw_sidebar()
 
   
+#def sidebar_enter():
+#  sidebar_buffer.append("ENTER")
+
 def sidebar_key(key):
   row, col = vim.current.window.cursor
   log(f"KeyPress = '{key}' at {row}", clear=True)
@@ -282,23 +283,17 @@ def sidebar_key(key):
     element_new=Sideline('g', name, is_open=False)
     _insert_element_at_row(row_line, element_new)
     vim.current.window.cursor = row+1, col  # Should be on added line
-    
-    """
-    if row_line is None:  # Add to start of Tree
-      tree_root.insert(0, element_new)
-    else:
-      if 'g'==row_line.sidetype and row_line.is_open:  # insert new child
-        row_line.children.insert(0, element_new )
-      else: # new entry goes after row_line on same level
-        _insert_in_tree(tree_root, row, element_new)
-    _redraw_sidebar()
-    vim.current.window.cursor = row+1, col  # Should be on added line
-    """
 
   elif 'AddFile'==key:
-    name='sdfsdf'
-    filename='sdfsdf/sdfsdf'
+    vim.command(f'wincmd l')  
+    name    =vim.eval("expand('%:t')")
+    filename=vim.eval("expand('%:.')")
+    vim.command(f'wincmd t')  
+    log(f"'{name}' -> '{filename}'")
+    
     element_new=Sideline('f', name, filename=filename)
+    _insert_element_at_row(row_line, element_new)
+    vim.current.window.cursor = row+1, col  # Should be on added line
     
   else:
     log("Unhandled keypress")
