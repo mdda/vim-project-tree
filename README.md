@@ -66,6 +66,21 @@ MAYBE : When loaded for the first time in a directory, it's immediately ready to
 '.geany' folder if you need to save the tree or the session.
 
 
+##  Installation
+
+
+With Vim 8.0 and after, there's a built-in package manager.  So you can create the necessary directory within the autoload hierarchy 
+(here `mdda` is just an arbitrary choice), and then clone this repo into there directly.  (Alternatively, you can create symlink from there too) :
+
+```
+pushd . 
+mkdir -p ~/.vim/pack/mdda/start
+cd  ~/.vim/pack/mdda/start
+git clone https://github.com/mdda/vim-project-tree.git
+# OR : ln -s ~/your-src-directory/vim-project-tree .
+popd
+```
+
 ## Commentary
 
 ### INI files
