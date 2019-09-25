@@ -43,9 +43,9 @@ def _find_config_dir(base):
   for d in config_dir_choices:
     base_config = os.path.join(base, d)
     if os.path.isdir(base_config):
-      print("Found directory {}"
-      config_dir=base_config
-      break
+      #print(f"Found directory {base_config}")
+      return base_config
+  return None
       
 def _redraw_sidebar():
   sidebar_buffer[:]=None # Empty
@@ -262,11 +262,13 @@ if vim_launch_directory is not None:
   if os.path.isdir(vim_launch_directory):
     #log("Found launch directory")
     
-    _find_config_dir(vim_launch_directory)
+    config_dir = _find_config_dir(vim_launch_directory)
     
     session_path = None
     if config_dir is not None:
       session_path = os.path.join(config_dir, config_session_file)
+
+    print(f"session_path = {session_path}")
 
     if session_path is not None and os.path.isfile( session_path ):
       vim.command(f'wincmd l')  
