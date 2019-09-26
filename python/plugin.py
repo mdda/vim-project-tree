@@ -184,20 +184,27 @@ def sidebar_key(key):
       vim.current.window.cursor = row-1, col
       
   elif 'SaveProject'==key:
-    if 0==len(config_dir_arr):
-      config_dir=vim.eval(f"""input('Path for saving : ', "{os.path.join(vim_launch_directory, config_dir_choices[0])}")""")
-      if config_dir is None: return
-      os.makedirs(config_dir, exist_ok=True)
-      log(f"config_dir set to ='{config_dir}'")
-    else:
-      config_dir = config_dir_arr[0]
-      
+    config_dif=_query_for_config_dir()
+    if config_dif is None: return 
     _save_project_tree(tree_root, os.path.join(config_dir, config_tree_layout_file))
+    
+  elif 'SaveSession'==key:
+    config_dif=_query_for_config_dir()
+    if config_dif is None: return 
+    _save_session_files(os.path.join(config_dir, config_session_file))
     
   else:
     log("Unhandled keypress")
     
-
+def _query_for_config_dir():
+  if 0==len(config_dir_arr):
+    config_dir=vim.eval(f"""input('Path for saving : ', "{os.path.join(vim_launch_directory, config_dir_choices[0])}")""")
+    if config_dir is None: return None
+    os.makedirs(config_dir, exist_ok=True)
+    log(f"config_dir set to ='{config_dir}'")
+  else:
+    config_dir = config_dir_arr[0]
+  return config_dir
 
 def _save_project_tree(tree_root, config_file):
   config = configparser.ConfigParser()
@@ -222,6 +229,31 @@ def _save_project_tree(tree_root, config_file):
   with open(config_file, 'w') as fout:
     config.write(fout)
 
+def _save_session_files(config_file):
+  config = configparser.ConfigParser()
+    
+  open_files_section = "open-files"
+  config.add_section(open_files_section)
+  
+  # Get buffer listing...
+  TODO
+  
+  i = 0
+  while True:       
+    doc=geany.document.get_from_page(i)
+    if doc is None:  # Finished list the document tabs
+        break
+    file = doc.file_name 
+    if file is not None: 
+      file_relative = os.path.relpath(file, self.config_base_directory)
+      at_line = 1
+      scroll_pct = doc.editor.scroll_percent
+      print("SAVING : file_relative:line=pct = %s:%d=%.2f" % (file_relative, at_line, scroll_pct))
+      config.set(open_files_section, "%d" % (i*10,), "%s:%d" % (file_relative, at_line))
+    i += 1
+
+  with open(config_file, 'w') as fout:
+    config.write(fout)
 
     
 if vim_launch_directory is not None:
