@@ -121,6 +121,8 @@ def _insert_element_at_row(row_line, element_new):
 #  sidebar_buffer.append("ENTER")
 
 def sidebar_key(key):
+  #globals(config_dir)
+  
   row, col = vim.current.window.cursor
   log(f"KeyPress = '{key}' at {row}", clear=True)
   row_line = _scan_tree(tree_root, row)  # Almost always used
@@ -182,10 +184,41 @@ def sidebar_key(key):
       _redraw_sidebar()
       vim.current.window.cursor = row-1, col
       
+  elif 'SaveProject'==key:
+    #log(f"config_dir='{config_dir}'")
+    if config_dir is None:
+      config_dir=vim.eval(f"""input('Path for saving : ', os.path.join(vim.vim_launch_directory, config_dir_choices[0]))""")
+      if config_dir is None: return
+      log(f"config_dir set to ='{config_dir}'")
+    
+    _save_project_tree(tree_root, os.path.join(config_dir, config_tree_layout_file))
     
   else:
     log("Unhandled keypress")
     
+
+
+def _save_project_tree(tree_root, config_file):
+  config = configparser.ConfigParser()
+
+  def _save_project_tree_branch(section, arr):
+    config.add_section(section)
+    i, finished = 10, False
+    for i, ele in enumerate(arr):
+      log(f'* {ele.label:s}:{ele.position}')
+      
+      if 'f'==ele.sidetype:  
+        config.set(section, "%d" % (i*10,), ele.filename)
+      else:
+        #_log_tree(ele.children)
+        config.set(section, "%d-group" % (i*10,), ele.label)
+        _save_project_tree_branch(section+'/'+ele.label, ele.children)
+
+  ## Now walk along the whole 'model', creating groups = sections, and files as we go
+  _save_project_tree_branch('.', tree_root)
+  
+  with open(config_file, 'w') as fout:
+    config.write(fout)
 
 
     
@@ -209,7 +242,7 @@ if vim_launch_directory is not None:
   #https://github.com/scrooloose/nerdtree/blob/master/lib/nerdtree/key_map.vim#L58
   # <silent> 
   #vim.command(f'nnoremap <buffer> <CR> :python3 plugin.sidebar_enter()<CR>')  # Calls into python directly
-  for key, value in {'<CR>':'Select', 'f':'AddFile', 'g':'AddGroup', 'd':'Delete', 'm':'Move', 'r':'Rename', 'p':'SaveProject', 's':'SaveSession', }.items():
+  for key, value in {'<CR>':'Select', 'f':'AddFile', 'g':'AddGroup', 'd':'Delete', 'r':'Rename', 'p':'SaveProject', 's':'SaveSession', 'm':'Move', }.items():
     vim.command(f'nnoremap <buffer> <silent> {key} :python3 plugin.sidebar_key("{value}")<CR>')  # Calls into python directly
 
   sidebar_buffer = vim.buffers[len(vim.buffers)]  # 'sidebar' is the last opened buffer
@@ -263,6 +296,7 @@ if vim_launch_directory is not None:
     #log("Found launch directory")
     
     config_dir = _find_config_dir(vim_launch_directory)
+    log(f"config_dir='{config_dir}'")
     
     session_path = None
     if config_dir is not None:
