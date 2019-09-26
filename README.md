@@ -80,7 +80,7 @@ The project-tree sidebar has keys assigned, their operation refers to the curren
  * 'd' - Delete current entry (after confirmation prompt)
  * 'r' - Rename current entry (prompts for name)
  * TODO : 'm' - Move current entry to after the line given in response to a prompt
- * TODO : 'p' - Save project-tree
+ * 'p' - Save project-tree
  * TODO : 's' - Save current session
  
 TODO : When loaded for the first time in a directory, it's immediately ready to use : If you decided to save 

@@ -9,7 +9,7 @@ except:
   vim_launch_directory=None
 
 config_dir_choices = ['./.editor', './.geany', ]
-config_dir=None
+config_dir_arr=[]
 
 config_tree_layout_file = "project-tree-layout.ini"
 config_session_file     = "session.ini"
@@ -28,6 +28,15 @@ def log(txt, clear=False):
   if clear: log_buffer[:]=None
   log_buffer.append(txt)
   
+def _find_config_dir(base):
+  for c in config_dir_choices:
+    base_config = os.path.join(base, c)
+    if os.path.isdir(base_config):
+      #print(f"Found directory {base_config}")
+      return base_config
+  return None
+      
+
 class Sideline:
   def __init__(self, sidetype, label, filename=None, is_open=False):
     self.sidetype=sidetype
@@ -39,14 +48,6 @@ class Sideline:
       self.children=[]
       self.is_open=is_open
 
-def _find_config_dir(base):
-  for d in config_dir_choices:
-    base_config = os.path.join(base, d)
-    if os.path.isdir(base_config):
-      #print(f"Found directory {base_config}")
-      return base_config
-  return None
-      
 def _redraw_sidebar():
   sidebar_buffer[:]=None # Empty
   _reset_positions(tree_root)
@@ -121,8 +122,6 @@ def _insert_element_at_row(row_line, element_new):
 #  sidebar_buffer.append("ENTER")
 
 def sidebar_key(key):
-  #globals(config_dir)
-  
   row, col = vim.current.window.cursor
   log(f"KeyPress = '{key}' at {row}", clear=True)
   row_line = _scan_tree(tree_root, row)  # Almost always used
@@ -185,12 +184,14 @@ def sidebar_key(key):
       vim.current.window.cursor = row-1, col
       
   elif 'SaveProject'==key:
-    #log(f"config_dir='{config_dir}'")
-    if config_dir is None:
-      config_dir=vim.eval(f"""input('Path for saving : ', os.path.join(vim.vim_launch_directory, config_dir_choices[0]))""")
+    if 0==len(config_dir_arr):
+      config_dir=vim.eval(f"""input('Path for saving : ', "{os.path.join(vim_launch_directory, config_dir_choices[0])}")""")
       if config_dir is None: return
+      os.makedirs(config_dir, exist_ok=True)
       log(f"config_dir set to ='{config_dir}'")
-    
+    else:
+      config_dir = config_dir_arr[0]
+      
     _save_project_tree(tree_root, os.path.join(config_dir, config_tree_layout_file))
     
   else:
@@ -205,13 +206,14 @@ def _save_project_tree(tree_root, config_file):
     config.add_section(section)
     i, finished = 10, False
     for i, ele in enumerate(arr):
-      log(f'* {ele.label:s}:{ele.position}')
+      #log(f'* {ele.label:s}:{ele.position}')
+      j=(i+1)*10
       
       if 'f'==ele.sidetype:  
-        config.set(section, "%d" % (i*10,), ele.filename)
+        config.set(section, "%d" % (j,), ele.filename)
       else:
         #_log_tree(ele.children)
-        config.set(section, "%d-group" % (i*10,), ele.label)
+        config.set(section, "%d-group" % (j,), ele.label)
         _save_project_tree_branch(section+'/'+ele.label, ele.children)
 
   ## Now walk along the whole 'model', creating groups = sections, and files as we go
@@ -301,8 +303,8 @@ if vim_launch_directory is not None:
     session_path = None
     if config_dir is not None:
       session_path = os.path.join(config_dir, config_session_file)
-
-    print(f"session_path = {session_path}")
+      config_dir_arr.append(config_dir)
+    #print(f"session_path = {session_path}")
 
     if session_path is not None and os.path.isfile( session_path ):
       vim.command(f'wincmd l')  
@@ -380,4 +382,3 @@ if vim_launch_directory is not None:
         #print(tree)
     
     _redraw_sidebar()
-      
