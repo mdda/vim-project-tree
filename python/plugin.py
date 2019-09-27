@@ -235,22 +235,26 @@ def _save_session_files(config_file):
   open_files_section = "open-files"
   config.add_section(open_files_section)
   
-  # Get buffer listing...
-  TODO
-  
-  i = 0
-  while True:       
-    doc=geany.document.get_from_page(i)
-    if doc is None:  # Finished list the document tabs
-        break
-    file = doc.file_name 
-    if file is not None: 
-      file_relative = os.path.relpath(file, self.config_base_directory)
-      at_line = 1
-      scroll_pct = doc.editor.scroll_percent
-      print("SAVING : file_relative:line=pct = %s:%d=%.2f" % (file_relative, at_line, scroll_pct))
-      config.set(open_files_section, "%d" % (i*10,), "%s:%d" % (file_relative, at_line))
-    i += 1
+  vim.command(f'wincmd l')  # Move into the 'main window'
+  buf_current = vim.current.buffer
+
+  for b in vim.buffers:
+    #log(f"buffer[{b.number}] = {b.name}:{vim.current.window.cursor[0]} {b.options['bufhidden']}+{b.options['buftype']}")
+    if b'hide'==b.options['bufhidden'] or b'nofile'==b.options['buftype']:  # NB: 'b' required for byte-strings
+      continue
+    vim.current.buffer=b
+    log(f"buffer[{b.number}] = {b.name}:{vim.current.window.cursor[0]}")
+
+    filename = b.name
+    file_relative = os.path.relpath(filename, vim_launch_directory)
+    if len(file_relative)<len(filename):
+      filename=file_relative
+
+    at_line = vim.current.window.cursor[0]
+    config.set(open_files_section, "%d" % (b.number*10,), f"{filename}:{at_line}")
+
+  vim.current.buffer = buf_current
+  vim.command(f'wincmd t')  # top-left window
 
   with open(config_file, 'w') as fout:
     config.write(fout)
