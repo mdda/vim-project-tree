@@ -40,7 +40,7 @@ The project-tree plugin's files are stored in a '.editor' directory (it will con
  * .editor
    + project-tree-layout.ini
    + session.ini
-   + session_default.ini # TODO
+   + session_default.ini # TODO, maybe
  * ... the rest of your files ...
 
 For backwards compatibility, it will also search in `.geany` and use that as 
@@ -81,7 +81,7 @@ The project-tree sidebar has keys assigned, their operation refers to the curren
  * 'r' - Rename current entry (prompts for name)
  * TODO : 'm' - Move current entry to after the line given in response to a prompt
  * 'p' - Save project-tree
- * TODO : 's' - Save current session
+ * 's' - Save current session, with line numbers (TODO : and read-only flag)
  
 TODO : When loaded for the first time in a directory, it's immediately ready to use : If you decided to save 
 the tree or the session it will ask whether to create the '.editor' folder.

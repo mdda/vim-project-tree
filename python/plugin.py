@@ -363,7 +363,7 @@ if vim_launch_directory is not None:
             if order not in d: d[order]=dict()
             d[order][m.group(2)] = v
             
-        line_matcher = re.compile("(.*?)\:([\d\.]+)$")
+        line_matcher = re.compile("(.*?)\:([\d\.]+)\:?([ro\,]*)$")
         for k,vd in sorted(d.items()):  # Here, vd is dictionary of data about each 'k' item
           if '' in vd: # This is a file (the default type of item)
             file_relative = vd['']
@@ -371,9 +371,13 @@ if vim_launch_directory is not None:
             if m:  # This only matches if there's a line number there
               file_relative = m.group(1)
               at_line = int(m.group(2))
-            log(f"LOADING : file_relative:line = {file_relative:s}:{at_line:d}")
+              read_only = ('ro' in m.group(3))
+            log(f"LOADING : file_relative:line = {file_relative:s}:{at_line:d}, read_only={read_only}")
             vim.command(f'silent edit {file_relative:s}') 
             vim.current.window.cursor = at_line,0
+            if read_only:
+              # TODO : Make the window read-only...
+              pass
             
       vim.command(f'wincmd t')  # top-left window
 
