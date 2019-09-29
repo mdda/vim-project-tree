@@ -82,12 +82,17 @@ def _insert_in_tree(arr, position, element_new):
       _insert_in_tree(ele.children, position, element_new)            
 
 def _delete_from_tree(arr, position):
+  deleted=None
   for i, ele in enumerate(arr):
     if ele.position==position:
+      deleted=arr[i] # capture the element
       del arr[i]
       break
     if 'g'==ele.sidetype and ele.is_open:
-      _delete_from_tree(ele.children, position)
+      deleted=_delete_from_tree(ele.children, position)
+      if deleted is not None:
+        break
+  return deleted
 
 def _log_tree(arr):
   for ele in arr:
@@ -182,7 +187,25 @@ def sidebar_key(key):
       row_line.label=name
       _redraw_sidebar()
       vim.current.window.cursor = row-1, col
+
+  elif 'Move'==key:
+    if row_line is not None:
+      move_after_str=vim.eval(f"""input('Enter line number that "{row_line.label}" should appear after : ')""")
+      log(f"Appearing after='{move_after_str}'")
+      if 0==len(move_after_str): return # Nothing to do
+      move_after = int(move_after_str)
+      if move_after<1 or move_after>len(sidebar_buffer): return # Bad position
+      if move_after==row: return # Can't move to myself
+
+      element_moving = _delete_from_tree(tree_root, row)
+      # NB: No renumbering has taken place yet
+      move_after_line = _scan_tree(tree_root, move_after)
+      _insert_element_at_row(move_after_line, element_moving)
       
+      _redraw_sidebar()
+      vim.current.window.cursor = move_after, col  # Should be on moved line
+    
+
   elif 'SaveProject'==key:
     config_dif=_query_for_config_dir()
     if config_dif is None: return 
