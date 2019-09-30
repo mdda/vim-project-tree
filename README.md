@@ -18,7 +18,7 @@ The project-tree view can be different from how they're laid out on disk :
 Personally, I prefer to keep a 'thematic' structure to a project - 
 at the very least, it can be handy to keep files in an order not dictated by their sequence alphabetically.
 
-<!-- ![Screenshot](./img/vim-project-tree_screenshot-1.png?raw=true)  !-->
+![Screenshot](./img/vim-project-tree_screenshot-1.png?raw=true)
 
 The plugin is also designed to keep separate state for different repository folders, with the state being stored locally, 
 so that one can put it into version control, for instance.
