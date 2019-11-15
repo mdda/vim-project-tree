@@ -207,13 +207,13 @@ def sidebar_key(key):
     
 
   elif 'SaveProject'==key:
-    config_dif=_query_for_config_dir()
-    if config_dif is None: return 
+    config_dir=_query_for_config_dir()
+    if config_dir is None: return 
     _save_project_tree(tree_root, os.path.join(config_dir, config_tree_layout_file))
     
   elif 'SaveSession'==key:
-    config_dif=_query_for_config_dir()
-    if config_dif is None: return 
+    config_dir=_query_for_config_dir()
+    if config_dir is None: return 
     _save_session_files(os.path.join(config_dir, config_session_file))
     
   else:
