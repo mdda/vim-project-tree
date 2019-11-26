@@ -20,7 +20,8 @@ at the very least, it can be handy to keep files in an order not dictated by the
 
 ![Screenshot](./img/vim-project-tree_screenshot-1.png?raw=true)
 
-The plugin is also designed to keep separate state for different repository folders, with the state being stored locally, 
+The plugin is also designed to keep separate state for different repository folders, 
+with the state being stored locally, 
 so that one can put it into version control, for instance.
 
 I had previously contributed to a separate sidebar widget/app for SciTE, called SciTEpm (which is why this plugin
@@ -35,7 +36,8 @@ Hence the move.
 For each actual project that you have (as distinct from what Geany calls projects), typically one would 
 launch Geany from its root directory (where the .git directory is stored, for instance).
 
-The project-tree plugin's files are stored in a '.editor' directory (it will confirm before writing anything to disk) :
+The project-tree plugin's files are stored in a '.editor' directory 
+(it will confirm before writing anything to disk) :
 
  * .editor
    + project-tree-layout.ini
@@ -83,7 +85,7 @@ The project-tree sidebar has keys assigned, their operation refers to the curren
  * 'p' - Save project-tree
  * 's' - Save current session, with line numbers (TODO : and read-only flag)
  
-TODO : When loaded for the first time in a directory, it's immediately ready to use : If you decided to save 
+When loaded for the first time in a directory, it's immediately ready to use : If you decided to save 
 the tree or the session it will ask whether to create the '.editor' folder.
 
 
